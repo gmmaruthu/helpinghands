@@ -342,7 +342,7 @@ if(isset($_POST['email']) != '' && isset($_POST['password']) != ''){
 
 					<!-- Icon -->
 					<div class="fadeIn first">
-					  <img src="img/logo.png" id="icon" alt="User Icon" /><h1>Helping Hands</h1>
+					  <img src="img/logo.png" id="icon" alt="User Icon" />
 					</div>
 					<?php
 					if($message == 'signup'){

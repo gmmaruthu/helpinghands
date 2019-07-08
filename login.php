@@ -323,7 +323,7 @@ if(isset($_GET['value']) == 'logout'){
 
 					<!-- Icon -->
 					<div class="fadeIn first">
-					  <img src="img/logo.png" id="icon" alt="User Icon" /> <h1>Helping Hands</h1>
+					  <img src="img/logo.png" id="icon" alt="User Icon" />
 					</div>
 					<?php 
 						if($message == 'failed'){
@@ -354,7 +354,7 @@ if(isset($_GET['value']) == 'logout'){
 
 					<!-- Remind Passowrd -->
 					<div id="formFooter">
-					  <a class="underlineHover" href="signup.php">Click here to signup!</a>
+					  <a class="underlineHover" href="signup.php">Sign up Here!</a>
 					</div>
 
 				  </div>
