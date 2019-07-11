@@ -12,7 +12,7 @@ if(isset($_SESSION["user_type"])) {
 
 
 	if(isset($_POST["book_title"])){
-	   $update_book = "UPDATE `books` SET `book_title` = '".$_POST['book_title']."', `book_author` = '".$_POST['book_author']."', `book_description` = '".$_POST['book_description']."' WHERE `book_id` =  '".$_GET['book_id']."'";
+	   $update_book = "UPDATE `books` SET `book_title` = '".$_POST['book_title']."', `book_author` = '".$_POST['book_author']."', `book_description` = '".$_POST['book_description']."', `category` = '".$_POST['book_category']."' WHERE `book_id` =  '".$_GET['book_id']."'";
 	    if ($conn->query($update_book) === TRUE) {
 			$_SESSION['update_message'] = 'Success';
 			header("Location:addbooks.php");
@@ -55,6 +55,24 @@ if(isset($_SESSION["user_type"])) {
 								<label class="control-label">Book Author</label>
 								<input type="text" class="form-control" name="book_author" id="book_author" placeholder="Separate multiple authors like Author1,Author2,Author3" required maxlength="255" value="<?php echo $get_book['book_author']; ?>">
 								<p class="book_author"></p>
+							</div>
+						</div>
+						<div class="control-group form-group">
+							<div class="controls">
+								<label class="control-label">Category</label>
+								<select class="form-control" name="book_category" id="book_category" required>
+								<?php $get_categories_sql = "SELECT * FROM `category` where `status` = 0";
+										$get_categories = mysqli_query($conn, $get_categories_sql);
+										if(count($get_categories) > 0){
+											while ($category = mysqli_fetch_array($get_categories)) { ?>
+												<option value="<?php echo $category['id']; ?>" <?php if($get_book['category'] == $category['id']) echo "selected"; ?>><?php echo $category['name']; ?></option>
+											<?php }
+										}else{
+											echo '<option value="">No Category Found</option>';
+										}
+								?>									
+								</select>
+								<p class="book_category"></p>
 							</div>
 						</div>
 						<div class="control-group form-group">

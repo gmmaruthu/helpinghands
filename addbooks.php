@@ -4,8 +4,9 @@ if(isset($_SESSION["user_type"])) {
 	require('php/DB.php');
 
   if(isset($_POST["book_title"])){
+  	//echo '<pre>';print_r($_POST);die();
 	$created_date = date('Y-m-d H:i:s');
-   $sql = "INSERT INTO `books` (`book_title`, `book_author`, `book_description`, `created_date`, `created_user`) VALUES ('".$_POST["book_title"]."', '".$_POST["book_author"]."', '".$_POST["book_description"]."', '".$created_date."', '".$_SESSION['user_id']."')";
+   $sql = "INSERT INTO `books` (`book_title`, `book_author`, `book_description`, `category`, `created_date`, `created_user`) VALUES ('".$_POST["book_title"]."', '".$_POST["book_author"]."', '".$_POST["book_description"]."', '".$_POST["book_category"]."', '".$created_date."', '".$_SESSION['user_id']."')";
     if ($conn->query($sql) === TRUE) {
 		$_SESSION['message'] = 'Success';
 		header("Location:addbooks.php");
@@ -91,6 +92,24 @@ if(isset($_SESSION["user_type"])) {
 						</div>
 						<div class="control-group form-group">
 							<div class="controls">
+								<label class="control-label">Category</label>
+								<select class="form-control" name="book_category" id="book_category" required>
+								<?php $get_categories_sql = "SELECT * FROM `category` where `status` = 0";
+										$get_categories = mysqli_query($conn, $get_categories_sql);
+										if(count($get_categories) > 0){
+											while ($category = mysqli_fetch_array($get_categories)) { ?>
+												<option value="<?php echo $category['id']; ?>"><?php echo $category['name']; ?></option>
+											<?php }
+										}else{
+											echo '<option value="">No Category Found</option>';
+										}
+								?>									
+								</select>
+								<p class="book_category"></p>
+							</div>
+						</div>
+						<div class="control-group form-group">
+							<div class="controls">
 								<label>Book Description</label>
 								<textarea class="form-control" rows="6" name="book_description" id="book_description"  required maxlength="255"></textarea>
 								<p class="help-block"></p>
@@ -112,6 +131,7 @@ if(isset($_SESSION["user_type"])) {
                         <th>Name</th>
                         <th>Author</th>
 						<th>Description</th>
+						<th>Category</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -123,6 +143,18 @@ if(isset($_SESSION["user_type"])) {
 			                        <td><?php echo $row['book_title']; ?></td>
 			                        <td><?php echo $row['book_author']; ?></td>
 									<td><?php echo $row['book_description']; ?></td>
+									<td><?php if($row['category'] != 0){
+										$get_category_sql = "SELECT * FROM `category` where `status` = 0 and id=".$row['category'];
+										$get_category = mysqli_query($conn, $get_category_sql);
+										if(count($get_category) > 0){
+											while($cat = mysqli_fetch_array($get_category)){
+												echo $cat['name'];
+											}
+										}
+									}else {
+										echo 'NA';
+									}
+									?></td>
 			                        <td>
 			                        	<?php if(empty($row['requested_book'])) { ?>
 				                            <a href="editbook.php?book_id=<?php echo $row['book_id']; ?>" class="edit"><i class="fa fa-pencil" aria-hidden="true"></i></a>
