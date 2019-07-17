@@ -4,14 +4,46 @@ if(isset($_SESSION["user_type"])) {
 	require('php/DB.php');
 
   if(isset($_POST["book_title"])){
-  	//echo '<pre>';print_r($_POST);die();
 	$created_date = date('Y-m-d H:i:s');
-   $sql = "INSERT INTO `books` (`book_title`, `book_author`, `book_description`, `category`, `created_date`, `created_user`) VALUES ('".$_POST["book_title"]."', '".$_POST["book_author"]."', '".$_POST["book_description"]."', '".$_POST["book_category"]."', '".$created_date."', '".$_SESSION['user_id']."')";
-    if ($conn->query($sql) === TRUE) {
-		$_SESSION['message'] = 'Success';
-		header("Location:addbooks.php");
-		exit;
-	}
+
+	$book_image = null;
+	if(!empty($_FILES["book_image"]["name"])){
+		/* Book Image Upload */
+		$target_dir = $_SERVER['DOCUMENT_ROOT']."/helping_hands/uploads/";
+		if (!file_exists($target_dir)) {
+	    	mkdir($target_dir, 0777, true);
+		}
+		$target_file = $target_dir . basename($_FILES["book_image"]["name"]);
+		//$uploadOk = 1;
+		$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+		// Check if image file is a actual image or fake image
+	    $check = getimagesize($_FILES["book_image"]["tmp_name"]);
+	    $width = $check[0];
+		$height = $check[1];
+	    if ($width > 300 && $height > 200) {
+	        $_SESSION['upload_error_1'] = 'Failed';
+	    }else if($check !== false) {
+	    	if(move_uploaded_file($_FILES["book_image"]["tmp_name"], $target_dir.$_FILES["book_image"]["name"])){
+	    		$book_image = $_FILES["book_image"]["name"];
+	    	}
+
+	        $sql = "INSERT INTO `books` (`book_title`, `book_author`, `book_image`, `book_description`, `category`, `created_date`, `created_user`) VALUES ('".$_POST["book_title"]."', '".$_POST["book_author"]."', '".$book_image."', '".$_POST["book_description"]."', '".$_POST["book_category"]."', '".$created_date."', '".$_SESSION['user_id']."')";
+		    if ($conn->query($sql) === TRUE) {
+				$_SESSION['message'] = 'Success';
+				header("Location:addbooks.php");
+				exit;
+			}
+	    } else {
+	        $_SESSION['upload_error_2'] = 'Failed';
+	    }
+    }else{
+    	$sql = "INSERT INTO `books` (`book_title`, `book_author`, `book_image`, `book_description`, `category`, `created_date`, `created_user`) VALUES ('".$_POST["book_title"]."', '".$_POST["book_author"]."', '".$book_image."', '".$_POST["book_description"]."', '".$_POST["book_category"]."', '".$created_date."', '".$_SESSION['user_id']."')";
+		    if ($conn->query($sql) === TRUE) {
+				$_SESSION['message'] = 'Success';
+				header("Location:addbooks.php");
+				exit;
+			}
+    }
   }
 
   /* Get books */
@@ -71,7 +103,18 @@ if(isset($_SESSION["user_type"])) {
 					  <strong>Success!</strong> Your book successfully deleted.
 					</div>';
 					unset($_SESSION["delete_message"]);
-				} ?>
+				}else if($_SESSION["upload_error_1"]){
+					echo '<div class="alert alert-danger">
+					  <strong>Error!</strong> Image dimension should be within 300X200.
+					</div>';
+					unset($_SESSION["upload_error_1"]);
+				} else if($_SESSION["upload_error_2"]){
+					echo '<div class="alert alert-danger">
+					  <strong>Error!</strong> Something went wrong when uploading image.
+					</div>';
+					unset($_SESSION["upload_error_2"]);
+				}
+				?>
 			<!-- Signup Form -->
 			<div class="row">
 				<div class="col-md-8">
@@ -110,6 +153,15 @@ if(isset($_SESSION["user_type"])) {
 						</div>
 						<div class="control-group form-group">
 							<div class="controls">
+								<label class="">Upload Book Image</label>
+								<input type="file" class="form-control" name="book_image" id="book_image">
+								<?php if(!empty($response)) { ?>
+									<p class="book_image"><?php echo $response["message"]; ?></p>
+								<?php }?>
+							</div>
+						</div>
+						<div class="control-group form-group">
+							<div class="controls">
 								<label>Book Description</label>
 								<textarea class="form-control" rows="6" name="book_description" id="book_description"  required maxlength="255"></textarea>
 								<p class="help-block"></p>
@@ -140,10 +192,10 @@ if(isset($_SESSION["user_type"])) {
                 	if ($get_books->num_rows > 0) { 
                 			while($row = mysqli_fetch_array($get_books)) { ?>
 			                	<tr id="<?php echo $row['book_id']; ?>">
-			                        <td><?php echo $row['book_title']; ?></td>
-			                        <td><?php echo $row['book_author']; ?></td>
-									<td><?php echo $row['book_description']; ?></td>
-									<td><?php if($row['category'] != 0){
+			                        <td style="width: 15%"><?php echo $row['book_title']; ?></td>
+			                        <td style="width: 15%"><?php echo $row['book_author']; ?></td>
+									<td style="width: 40%"><?php echo $row['book_description']; ?></td>
+									<td style="width: 15%"><?php if($row['category'] != 0){
 										$get_category_sql = "SELECT * FROM `category` where `status` = 0 and id=".$row['category'];
 										$get_category = mysqli_query($conn, $get_category_sql);
 										if(count($get_category) > 0){
@@ -155,10 +207,18 @@ if(isset($_SESSION["user_type"])) {
 										echo 'NA';
 									}
 									?></td>
-			                        <td>
+			                        <td style="width: 15%">
 			                        	<?php if(empty($row['requested_book'])) { ?>
-				                            <a href="editbook.php?book_id=<?php echo $row['book_id']; ?>" class="edit"><i class="fa fa-pencil" aria-hidden="true"></i></a>
-				                            <a href="deletebook.php?book_id=<?php echo $row['book_id']; ?>" class="delete"><i class="fa fa-trash-o" aria-hidden="true"></i></a>
+				                            <a href="editbook.php?book_id=<?php echo $row['book_id']; ?>" class="edit">
+				                            	<button type="button" class="btn btn-success btn-sm">
+          											<i class="fa fa-pencil" aria-hidden="true"> Edit</i>
+          										</button>
+				                            </a>
+				                            <a href="deletebook.php?book_id=<?php echo $row['book_id']; ?>" class="delete">
+				                            	<button type="button" class="btn btn-danger btn-sm">
+          											<i class="fa fa-trash-o" aria-hidden="true"> Delete</i>
+          										</button>
+          									</a>
 			                        	<?php } else{ ?>
 											<button class="btn btn-sm btn-default">Book Requested</button>
 			                        	<?php }?>

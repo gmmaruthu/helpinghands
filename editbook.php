@@ -10,14 +10,45 @@ if(isset($_SESSION["user_type"])) {
 	    $get_book = mysqli_fetch_array($get_book_res);
 	}
 
-
 	if(isset($_POST["book_title"])){
-	   $update_book = "UPDATE `books` SET `book_title` = '".$_POST['book_title']."', `book_author` = '".$_POST['book_author']."', `book_description` = '".$_POST['book_description']."', `category` = '".$_POST['book_category']."' WHERE `book_id` =  '".$_GET['book_id']."'";
-	    if ($conn->query($update_book) === TRUE) {
-			$_SESSION['update_message'] = 'Success';
-			header("Location:addbooks.php");
-			exit;
-		}
+		$book_image = null;
+		if(!empty($_FILES["book_image"]["name"])){
+			/* Book Image Upload */
+			$target_dir = $_SERVER['DOCUMENT_ROOT']."/helping_hands/uploads/";
+			if (!file_exists($target_dir)) {
+		    	mkdir($target_dir, 0777, true);
+			}
+			$target_file = $target_dir . basename($_FILES["book_image"]["name"]);
+			//$uploadOk = 1;
+			$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+			// Check if image file is a actual image or fake image
+		    $check = getimagesize($_FILES["book_image"]["tmp_name"]);
+		    $width = $check[0];
+			$height = $check[1];
+		    if ($width > 300 && $height > 200) {
+		        $_SESSION['upload_error_1'] = 'Failed';
+		    }else if($check !== false) {
+		    	if(move_uploaded_file($_FILES["book_image"]["tmp_name"], $target_dir.$_FILES["book_image"]["name"])){
+		    		$book_image = $_FILES["book_image"]["name"];
+		    	}
+
+		        $update_book = "UPDATE `books` SET `book_title` = '".$_POST['book_title']."', `book_author` = '".$_POST['book_author']."', `book_description` = '".$_POST['book_description']."',`book_image` = '".$book_image."', `category` = '".$_POST['book_category']."' WHERE `book_id` =  '".$_GET['book_id']."'";
+			    if ($conn->query($update_book) === TRUE) {
+					$_SESSION['update_message'] = 'Success';
+					header("Location:addbooks.php");
+					exit;
+				}
+		    } else {
+		        $_SESSION['upload_error_2'] = 'Failed';
+		    }
+	    }else{
+	    	$update_book = "UPDATE `books` SET `book_title` = '".$_POST['book_title']."', `book_author` = '".$_POST['book_author']."', `book_description` = '".$_POST['book_description']."',`book_image` = '".$book_image."', `category` = '".$_POST['book_category']."' WHERE `book_id` =  '".$_GET['book_id']."'";
+		    if ($conn->query($update_book) === TRUE) {
+				$_SESSION['update_message'] = 'Success';
+				header("Location:addbooks.php");
+				exit;
+			}
+	    }
 	}
 ?>
 <!doctype html>
@@ -39,6 +70,21 @@ if(isset($_SESSION["user_type"])) {
 					<h1 class="page-header">Update Book</h1>
 				</div>
 			</div>
+
+				<br>
+				<?php if($_SESSION["upload_error_1"]){
+					echo '<div class="alert alert-danger">
+					  <strong>Error!</strong> Image dimension should be within 300X200.
+					</div>';
+					unset($_SESSION["upload_error_1"]);
+				} else if($_SESSION["upload_error_2"]){
+					echo '<div class="alert alert-danger">
+					  <strong>Error!</strong> Something went wrong when uploading image.
+					</div>';
+					unset($_SESSION["upload_error_2"]);
+				}
+				?>
+
 			<!-- Signup Form -->
 			<div class="row">
 				<div class="col-md-8">
@@ -77,8 +123,22 @@ if(isset($_SESSION["user_type"])) {
 						</div>
 						<div class="control-group form-group">
 							<div class="controls">
+								<label class="">Upload Book Image</label>
+								<input type="file" class="form-control" name="book_image" id="book_image" >
+								<p class="book_image"></p>
+								<?php 
+									$img_dir = $_SERVER['DOCUMENT_ROOT']."/helping_hands/uploads/";
+									if(!is_null($get_book['book_image'])){
+										$book_image = 'uploads/'.$get_book['book_image'];
+										echo '<img src="'.$book_image.'" width="150" height="150" />';
+									}
+									?>
+							</div>
+						</div>
+						<div class="control-group form-group">
+							<div class="controls">
 								<label>Book Description</label>
-								<textarea class="form-control" rows="6" name="book_description" id="book_description"  required maxlength="255"><?php echo $get_book['book_description']; ?></textarea>
+								<textarea class="form-control" rows="6" name="book_description" id="book_description" required maxlength="255"><?php echo $get_book['book_description']; ?></textarea>
 								<p class="help-block"></p>
 							</div>
 						</div>
