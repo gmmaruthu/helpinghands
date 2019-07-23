@@ -16,7 +16,8 @@
           <form class="form-inline mt-2 mt-md-0">
 		  <?php if(!isset($_SESSION["user_type"])) { ?>
 				<a href="#loginModal" data-toggle="modal" data-target="#loginModal"><span class="fa fa-sign-in" aria-hidden="true"></span>&nbsp;&nbsp;SIGN IN</a>
-		  <?php }else if($_SESSION["user_type"] == 'user') { ?>	
+		  <?php }else if($_SESSION["user_type"] == 'user') { ?>
+            <span class="welcome-text">Welcome <?php echo $_SESSION["name"]; ?></span>
             <a href="login.php?value=logout"><span class="fa fa-sign-out" aria-hidden="true"></span>&nbsp;&nbsp;Sign Out</a>
 		  <?php } ?>
           </form>

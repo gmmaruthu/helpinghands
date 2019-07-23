@@ -124,3 +124,7 @@ transition: box-shadow .3s;
 .book-table .pagination{
     float: right;
 }
+.welcome-text{
+    margin-right: 15px;
+    color: #fff;
+}
